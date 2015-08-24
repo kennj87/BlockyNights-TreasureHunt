@@ -1,13 +1,18 @@
 package randomloot.blockynights;
 
+import java.util.Set;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.Chest;
 import org.bukkit.block.Sign;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 public class Listeners implements Listener {
@@ -19,25 +24,35 @@ public class Listeners implements Listener {
 		this.chestspawn = chestspawn;
 	}
 	
-	@EventHandler
-	public void onChest(PlayerInteractEvent event) {
-		if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock().getType() == Material.CHEST) {
-			if (ChestSpawn.chestloc.get("loc").equals(event.getClickedBlock().getLocation())) {
-				if (ChestSpawn.chest.get("claimed").equalsIgnoreCase("no") || ChestSpawn.chest.get("claimee").equals(event.getPlayer().getName())) {
-					String player = event.getPlayer().getName();
-					String rarity = rarityAnnounc(ChestSpawn.chest.get("rarity"));
-					if (ChestSpawn.chest.get("claimed").equalsIgnoreCase("no")) {
-						Bukkit.getServer().broadcastMessage("§b"+player+"§3 claimed the "+rarity+"§3 Chest!");
-						ChestSpawn.chest.put("claimed", "yes");
-						ChestSpawn.chest.put("claimee", event.getPlayer().getName());
-						updateSign(event.getPlayer().getWorld().getName());
-					}
-				} else { 
-					event.setCancelled(true);
-					event.getPlayer().sendMessage("§3Sorry this chest is already claimed by §b"+ChestSpawn.chest.get("claimee"));
-					}
+	@EventHandler(priority = EventPriority.HIGHEST)
+	 public void onInventoryOpenEvent(InventoryOpenEvent event){
+		if (ChestSpawn.chestloc.get("loc").equals(event.getPlayer().getTargetBlock((Set<Material>) null, 10).getLocation())) {
+			if (ChestSpawn.chest.get("claimed").equalsIgnoreCase("no") || ChestSpawn.chest.get("claimee").equals(event.getPlayer().getName())) {
+				if (event.isCancelled()) { event.setCancelled(false); }
 			}
-		}
+		} 
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onChest(PlayerInteractEvent event) {
+			if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock().getType() == Material.CHEST) {
+				if (ChestSpawn.chestloc.get("loc").equals(event.getClickedBlock().getLocation())) {
+					if (ChestSpawn.chest.get("claimed").equalsIgnoreCase("no") || ChestSpawn.chest.get("claimee").equals(event.getPlayer().getName())) {
+						String player = event.getPlayer().getName();
+						String rarity = rarityAnnounc(ChestSpawn.chest.get("rarity"));
+						if (event.isCancelled()) { event.setCancelled(false); }
+						if (ChestSpawn.chest.get("claimed").equalsIgnoreCase("no")) {
+							Bukkit.getServer().broadcastMessage("§b"+player+"§3 claimed the "+rarity+"§3 Chest!");
+							ChestSpawn.chest.put("claimed", "yes");
+							ChestSpawn.chest.put("claimee", event.getPlayer().getName());
+							updateSign(event.getPlayer().getWorld().getName());
+						}
+					} else { 
+						event.setCancelled(true);
+						event.getPlayer().sendMessage("§3Sorry this chest is already claimed by §b"+ChestSpawn.chest.get("claimee"));
+						}
+				}
+			}
 	}
 	
 	public void updateSign(String world) {
