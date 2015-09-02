@@ -19,6 +19,7 @@ public class Main extends JavaPlugin {
         scheduler.scheduleSyncRepeatingTask(this, new Runnable() {
             @Override
             public void run() {
+            	chestspawn.clearChest();
             	chestspawn.spawnChest();
             }
         }, 0L, 66000L);
