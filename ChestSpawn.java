@@ -91,6 +91,27 @@ public class ChestSpawn {
 		}.runTaskLater(main, 6000);
 	}
 	
+	public void clearChest() {
+		int amount = main.getConfig().getConfigurationSection("spawn").getKeys(false).size();
+		for (int i=1;i<=amount;i++) {
+			double x = main.getConfig().getDouble("spawn."+i+".x");
+			double y = main.getConfig().getDouble("spawn."+i+".y");
+			double z = main.getConfig().getDouble("spawn."+i+".z");
+			World w = Bukkit.getServer().getWorld(main.getConfig().getString("spawn."+i+".world"));
+			Location loc = new Location(w,x,y,z);
+			Block blockbottom = loc.getBlock();
+			Block blocktop = loc.add(0, 1, 0).getBlock();
+			if (blockbottom.getType() == Material.EMERALD_BLOCK && blocktop.getType() == Material.CHEST) {
+				Chest clearchest = (Chest) blocktop.getState();
+				Inventory inv = clearchest.getInventory();
+				inv.clear();
+	            w.playEffect(loc, Effect.EXPLOSION_HUGE, 5);
+	    		w.playSound(loc, Sound.EXPLODE, 1, 1);
+	    		blockbottom.setType(Material.AIR);
+	    		blocktop.setType(Material.AIR);
+			}
+		}
+	}
 	static public String rarity() {
 		Random random = new Random();
 		int low = 1;
